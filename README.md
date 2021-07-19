@@ -1,6 +1,6 @@
 # ioredis-hashes
 
-A quick demo of ioredis's ability to set/get object literals in a data store by [transforming arguments and replies](https://github.com/luin/ioredis#transforming-arguments--replies). 
+A quick demo of ioredis's ability to set/get arrays of object literals in a data store by [transforming arguments and replies](https://github.com/luin/ioredis#transforming-arguments--replies). 
 
 ## Install
 
