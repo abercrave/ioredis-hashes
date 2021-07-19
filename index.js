@@ -1,15 +1,20 @@
-const Redis = require('ioredis');
+const Redis = require('ioredis')
 const { convertMapToArray, convertObjectToArray, packObject } = require('ioredis/built/utils')
 const isPlainObject = require('lodash.isplainobject')
 
-const redis = new Redis();
+const redis = new Redis()
 
-// Here's the built-in argument transformer converting
-// hmset('key', { k1: 'v1', k2: 'v2' })
-// or
-// hmset('key', new Map([['k1', 'v1'], ['k2', 'v2']]))
-// into
-// hmset('key', 'k1', 'v1', 'k2', 'v2')
+/**
+ * Here's the built-in argument transformer converting:
+ * 
+ * hmset('key', { k1: 'v1', k2: 'v2' })
+ * or:
+ * hmset('key', new Map([['k1', 'v1'], ['k2', 'v2']]))
+ * 
+ * into:
+ * 
+ * hmset('key', 'k1', 'v1', 'k2', 'v2')
+ */
 Redis.Command.setArgumentTransformer("hmset", args => {
   if (args.length === 2) {
     const key = args[0]
@@ -23,9 +28,6 @@ Redis.Command.setArgumentTransformer("hmset", args => {
     }
 
     if (typeof value === "object" && value !== null) {
-      // console.log('value is object:', isPlainObject(value))
-      // console.log('converted object:', convertObjectToArray(value))
-
       const convertedObj = convertObjectToArray(value).map(item => {
         if (isPlainObject(item)) {
           return JSON.stringify(item)
@@ -41,16 +43,19 @@ Redis.Command.setArgumentTransformer("hmset", args => {
     }
   }
 
-  return args;
-});
+  return args
+})
 
-// Here's the built-in reply transformer converting the HGETALL reply
-// ['k1', 'v1', 'k2', 'v2']
-// into
-// { k1: 'v1', 'k2': 'v2' }
+/**
+ * Here's the built-in reply transformer converting the HGETALL reply:
+ *
+ * ['k1', 'v1', 'k2', 'v2']
+ * 
+ * into:
+ * 
+ * { k1: 'v1', 'k2': 'v2' }
+ */
 Redis.Command.setReplyTransformer("hgetall", result => {
-  // console.log('result:', result)
-
   if (Array.isArray(result)) {
     const parsedResult = result.map(item => {
       try {
@@ -60,15 +65,11 @@ Redis.Command.setReplyTransformer("hgetall", result => {
       }
     })
 
-    const obj = packObject(parsedResult)
-
-    // console.log('packed object:', obj)
-    return obj;
+    return packObject(parsedResult)
   }
 
-  // console.log('returning result:', result)
-  return result;
-});
+  return result
+})
 
 const data = [
   {
@@ -94,12 +95,12 @@ function convertArrayToObjectByKey(arr, key) {
   }, {})
 }
 
-async function saveHash(key, data) {
-  const hash = convertArrayToObjectByKey(data, 'id')
+async function saveArrayAsHash(key, arr) {
+  const hash = convertArrayToObjectByKey(arr, 'id')
 
-  console.log('\n******* Saving hash: *******');
+  console.log('\n******* saveArrayAsHash: *******')
   console.log(hash)
-  console.log('***********************\n');
+  console.log('***********************\n')
 
   await redis.hmset(key, hash)
 }
@@ -112,12 +113,12 @@ async function getHash(key) {
 async function main() {
   await redis.flushall()
 
-  await saveHash('testHash', data)
-  const result = await getHash('testHash')
+  await saveArrayAsHash('testHash', data)
 
-  console.log('\n******* getHash Result: *******');
+  const result = await getHash('testHash')
+  console.log('\n******* getHash Result: *******')
   console.log(result)
-  console.log('***********************\n');
+  console.log('***********************\n')
 }
 
 main()
